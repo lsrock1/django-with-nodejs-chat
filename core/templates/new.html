@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <!--[if IE]>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <![endif]-->
+    <title>Add:ict chat room</title>
+    <!-- BOOTSTRAP CORE STYLE CSS -->
+    <link rel="stylesheet" href="/static/css/form-elements.css">
+        <link rel="stylesheet" href="/static/css/style.css">
+    <link href='http://fonts.googleapis.com/css?family=Open Sans' rel='stylesheet' type='text/css'>
+    <link href='/static/css/twt.css' rel='stylesheet' type='text/css'>
+    <script src="/static/js/socket.io-1.4.5.js"></script>
+    <script src="/static/js/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <!--<link href="/static/css/bootstrap.css" rel="stylesheet" />-->
+</head>
+<body style="font-family:Verdana">
+  <div class="container">
+    <div class="row ">
+    <div class="col-md-12">
+        <ul class="nav nav-tabs">
+          {% if user.addict_user.nickname %}
+          <li class="active"><a data-toggle="tab" href="#home">Chat</a></li>
+          <li><a data-toggle="tab" href="#menu1">Users</a></li>
+          {% endif %}
+          <li {% if not user.addict_user.nickname %}class="active" {% endif %}><a data-toggle="tab" href="#menu2">Wallet</a></li>
+          {% if user.is_superuser %}<li><a data-toggle="tab" href="#menu3">Admin</a></li>{% endif %}
+          <li><a id="stop">down</a></li>
+        </ul>
+        
+        <div class="tab-content">
+            {% if user.addict_user.nickname %}
+          <div id="home" class="tab-pane fade in active">
+            <div class="panel panel-info">
+                <div class="panel-body" id="top"style="overflow-y:scroll;">
+                    <ul class="media-list" id="chat-room">
+                        
+                    </ul>
+                </div>
+                <div class="panel-footer">
+                    
+                    <input type="hidden" id="nickname" value="{{user.addict_user.nickname}}"/>
+                    <input type="hidden" id="id" value="{{user.username}}"/>
+                    <form id="chat_form">
+                        <div class="form-group">
+                            <input id="text-field"type="text" class="form-control" placeholder="Enter Message" />
+                        </div>
+                    </form>
+                    <!--<span class="input-group-btn">-->
+                    <!--    <button class="btn btn-info" id="chat"type="button">SEND</button>-->
+                    <!--</span>-->
+                    
+                    
+                </div>
+            </div>
+          </div>
+          <div id="menu1" class="tab-pane fade ">
+              <div class="panel panel-primary">
+                <div class="panel-heading">
+                   ONLINE USERS
+                </div>
+                <div class="panel-body">
+                    <ul class="media-list" id="user-list">
+                    </ul>
+                </div>
+              </div>
+          </div>
+          {% endif %}
+          <div id="menu2" class="tab-pane fade {% if not user.addict_user.nickname %}in active{%endif%}">
+            {% if not user.addict_user.nickname %}<h1>닉네임을 생성해야 대화에 참여할 수 있습니다!</h1>{%endif%}
+            
+          
+            <div class="twPc-div">
+                <a class="twPc-bg twPc-block"></a>
+            
+            	<div>
+            
+            		<a class="twPc-avatarLink">
+            			<img src="/static/0.jpg" class="twPc-avatarImg">
+            		</a>
+            
+            		<div class="twPc-divUser">
+            			<div class="twPc-divName">
+            				<a>{% if user.addict_user.nickname %}{{user.addict_user.nickname}}{% else %}닉네임 없음{% endif %}</a>
+            			</div>
+            			<span>
+            				<a href="https://www.facebook.com/addict2hufs/?fref=ts">@<span>Addict</span></a>
+            			</span>
+            		</div>
+            
+            		<div class="twPc-divStats">
+            			<ul class="twPc-Arrange">
+            				<li class="twPc-ArrangeSizeFit">
+            					<a href="https://www.facebook.com/addict2hufs/?fref=ts">
+            						<span class="twPc-StatLabel twPc-block">Credits</span>
+            						<span class="twPc-StatValue">{{user.addict_user.credit}}</span>
+            					</a>
+            				</li>
+            				<li class="twPc-ArrangeSizeFit">
+            					<a href="https://www.facebook.com/addict2hufs/?fref=ts">
+            						<span class="twPc-StatLabel twPc-block">Following</span>
+            						<span class="twPc-StatValue">885</span>
+            					</a>
+            				</li>
+            				<li class="twPc-ArrangeSizeFit">
+            					<a href="https://www.facebook.com/addict2hufs/?fref=ts">
+            						<span class="twPc-StatLabel twPc-block">Followers</span>
+            						<span class="twPc-StatValue">1.810</span>
+            					</a>
+            				</li>
+            			</ul>
+            		</div>
+            	</div>
+            </div>
+            {% if user.addict_user.nickname %}
+            <div class="form-box" style="background-image: url('/static/money3.jpg');">
+            	<div class="form-top" style="opacity: 0.9;">
+            		<div class="form-top-left">
+            			<h3>Money talks</h3>
+            		</div>
+            		<div class="form-top-right">
+            			<i class="fa fa-key"></i>
+            		</div>
+                </div>
+                <div class="form-bottom" style="opacity: 0.9;">
+                    <form role="form" action="" method="post" class="login-form">
+                    	<div class="form-group">
+                        	<input type="text" name="form-username" class="form-username form-control" id="money">
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+            <div class="form-box">
+            	<div class="form-top">
+            		<div class="form-top-left">
+            			<h3>닉네임 바꾸기</h3>
+            		</div>
+            		<div class="form-top-right">
+            			<i class="fa fa-key"></i>
+            		</div>
+                </div>
+                <div class="form-bottom">
+                    <form method="post" action="/addict/ajax/"class="login-form" id="nickname_form">
+                    	<div class="form-group">
+                        	<input type="text" name="nickname" class="form-username form-control">
+                        </div>
+                    </form>
+                </div>
+            </div>
+          </div>
+          
+          {% if user.is_superuser%} 
+          <div id="menu3" class="tab-pane fade">
+              <button class="btn btn-info" id="clear"type="button">Clear</button>
+              <button class="btn btn-info" id="next"type="button">Next Team</button>
+              <button class="btn btn-info" id="refresh"type="button">Refresh</button>
+              <div class="thumbnail" style="background-color: #7ec0ee">
+
+                    <div class="caption">
+
+                        <h3>{{ pt.team_name }}</h3>
+
+                        <p id="credit">총 {{ pt.total_money }}크레딧 받음</p>
+
+                        <p>{{ pt.number }} 번째 발표</p>
+
+                    </div>
+
+                </div>
+              
+              
+              {% for team in other %}
+
+                <div class="thumbnail">
+
+                    <div class="caption">
+
+                        <h3>{{team.team_name}}</h3>
+
+                        <p>총 {{team.total_money}}크레딧 받음</p>
+
+                        <p>{{team.number}} 번째 발표</p>
+
+                    </div>
+
+                </div>
+              {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        
+    </div>
+    
+    
+    </div>
+  </div>
+</body>
+    
+    <script>
+    {% if user.addict_user.nickname %}
+        $("#top").css('height',window.innerHeight/8*5);
+        
+        var socket = io.connect('https://addict-chat-lsrock1.c9users.io:8081');
+        var $room=$("#chat-room");
+        var $user=$("#user-list");
+        var on_off=1;
+        
+        function chat_string(msg){
+            if (msg.text.startsWith("#alertend")){
+                return '<div class="well">발표가 끝났습니다! 짝짝짝</div>'
+            }
+            else if (msg.text.startsWith("#alert")){
+                return '<div class="well">'+msg.text.slice(6)+'팀 시작합니다</div>'
+            }
+            
+            if (msg.text.startsWith("http")){
+                msg.text='<a href="'+msg.text+'" target="_blank">'+msg.text+'</a>';
+            }
+            
+            return '<li class="media" style="text-align:left;">'+
+                '<div class="media-body">'+
+                    '<div class="media">'+
+                    '<small style="text-weight">'+msg.name+'</small>'+
+                        '<div class="media-body">'+
+                            msg.text+
+                            '<br />'+
+                            
+                            '<hr />'+
+                        '</div>'+
+                    '</div>'+
+                '</div>'+
+            '</li>'
+            
+        }
+        
+        function user_string(names){
+            return '<li class="media">'+
+                        '<div class="media-body">'+
+                            '<div class="media">'+
+                                '<div class="media-body" >'+
+                                    '<h5>'+names+' | User </h5>'+
+                                '</div>'+
+                            '</div>'+
+                        '</div>'+
+                    '</li>'
+        }
+        
+        $("#stop").on("click",function(e){
+            if (on_off==0){
+                on_off=1;
+                $("#stop").html("down")
+            }
+            else{
+                on_off=0;
+                $("#stop").html("stop")
+            }
+            
+        });
+
+        socket.on('connect', function () {
+          socket.emit('identify', $("#nickname").val());
+          console.log("connect");
+        });
+
+        socket.on('message', function (msg) {
+          $room.append(chat_string(msg));
+          if (on_off==1){
+            $("#top").scrollTop($("#top").prop("scrollHeight"));
+          }
+        });
+
+        socket.on('roster', function (names) {
+            $user.html("");
+            names.forEach(function(user){
+                $user.append(user_string(user))
+            })
+          
+        });
+        
+        socket.on('clear', function(){
+            $room.html("");
+        })
+        
+        socket.on('next',function(name){
+            if(name!="end"){
+                $room.append('<div class="well">'+'발표가 모두 종료되었습니다'+'</div>');
+            }
+            else{
+                $room.append('<div class="well">'+name+'</div>');
+            }
+        })
+        
+        $("#chat_form").on('submit', function(e){
+            e.preventDefault();
+            socket.emit('message',$("#text-field").val());
+            $("#text-field").val("");
+        })
+        
+        {% endif %}
+        
+        {% if user.is_superuser%}
+        
+        $('#clear').click(function(){
+            socket.emit('clear');
+        })
+        
+        $('#next').click(function(){
+            if(confirm("다음 팀으로 넘어가시겠습니까?")==true){
+                $.ajax({
+                  method: "POST",
+                  url: "/addict/ajax/",
+                  data: { key: "next" }
+                })
+                  .done(function( data ) {
+                    socket.emit('next', data.name);
+                    location.reload(); 
+                  });
+                
+            }
+            
+        })
+        
+        $('#refresh').click(function(){
+            $.ajax({
+              method: "POST",
+              url: "/addict/ajax/",
+              data: { key: "refresh" }
+            })
+              .done(function( data ) {
+                $("#credit").html("총 "+data.credit+"크레딧 받음");
+              });
+        })
+        
+        {% endif %}
+        
+        // $("#chat").on('click',function(e){
+        //     socket.emit('message',$("#text-field").val());
+        //     $("#text-field").val("");
+        // })
+
+    </script>
+</html>
