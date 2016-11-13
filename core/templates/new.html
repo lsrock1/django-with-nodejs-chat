@@ -15,7 +15,7 @@
     <link href='http://fonts.googleapis.com/css?family=Open Sans' rel='stylesheet' type='text/css'>
     <link href='/static/css/twt.css' rel='stylesheet' type='text/css'>
     <script src="/static/js/socket.io-1.4.5.js"></script>
-    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/jquery-3.1.1.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
 <!-- Optional theme -->
@@ -31,7 +31,7 @@
     <div class="col-md-12">
         <ul class="nav nav-tabs">
           {% if user.addict_user.nickname %}
-          <li class="active"><a data-toggle="tab" href="#home">Chat</a></li>
+          <li class="active"><a id="chat_tab"data-toggle="tab" href="#home">Chat</a></li>
           <li><a data-toggle="tab" href="#menu1">Users</a></li>
           {% endif %}
           <li {% if not user.addict_user.nickname %}class="active" {% endif %}><a data-toggle="tab" href="#menu2">Wallet</a></li>
@@ -48,12 +48,12 @@
                         
                     </ul>
                 </div>
-                <div class="panel-footer">
+                <div class="panel-footer" style="padding-top:0px; padding-bottom:0px; padding-left:0px; padding-right:0px;">
                     
                     <input type="hidden" id="nickname" value="{{user.addict_user.nickname}}"/>
                     <input type="hidden" id="id" value="{{user.username}}"/>
                     <form id="chat_form">
-                        <div class="form-group">
+                        <div class="form-group" style="margin-bottom: 0px;">
                             <input id="text-field"type="text" class="form-control" placeholder="Enter Message" />
                         </div>
                     </form>
@@ -104,7 +104,7 @@
             				<li class="twPc-ArrangeSizeFit">
             					<a href="https://www.facebook.com/addict2hufs/?fref=ts">
             						<span class="twPc-StatLabel twPc-block">Credits</span>
-            						<span class="twPc-StatValue">{{user.addict_user.credit}}</span>
+            						<span class="twPc-StatValue" id="mymoney">{{user.addict_user.credit}}</span>
             					</a>
             				</li>
             				<li class="twPc-ArrangeSizeFit">
@@ -134,7 +134,7 @@
             		</div>
                 </div>
                 <div class="form-bottom" style="opacity: 0.9;">
-                    <form role="form" action="" method="post" class="login-form">
+                    <form id="money_form" class="login-form">
                     	<div class="form-group">
                         	<input type="text" name="form-username" class="form-username form-control" id="money">
                         </div>
@@ -165,7 +165,8 @@
           <div id="menu3" class="tab-pane fade">
               <button class="btn btn-info" id="clear"type="button">Clear</button>
               <button class="btn btn-info" id="next"type="button">Next Team</button>
-              <button class="btn btn-info" id="refresh"type="button">Refresh</button>
+              <button class="btn btn-info" id="give"type="button">Give</button>
+              <button class="btn btn-info" id="reset"type="button">Reset</button>
               <div class="thumbnail" style="background-color: #7ec0ee">
 
                     <div class="caption">
@@ -257,6 +258,11 @@
                     '</li>'
         }
         
+        function credit_string(credit){
+            return '<div class="alert alert-info"><img src="/static/image/balloon.png" class="img-thumbnail" style="height:130px; width: 130px;"><br>'+
+            '<strong>'+credit.name+ '님이 '+credit.credit +'개를 선물하셨습니다</strong></div>'
+        }
+        
         $("#stop").on("click",function(e){
             if (on_off==0){
                 on_off=1;
@@ -293,19 +299,41 @@
             $room.html("");
         })
         
-        socket.on('next',function(name){
-            if(name!="end"){
-                $room.append('<div class="well">'+'발표가 모두 종료되었습니다'+'</div>');
-            }
-            else{
-                $room.append('<div class="well">'+name+'</div>');
-            }
+        socket.on('credit',function(credit){
+            $room.append(credit_string(credit));
+        })
+        
+        socket.on('poor',function(data){
+            $room.append(data.state);
         })
         
         $("#chat_form").on('submit', function(e){
             e.preventDefault();
             socket.emit('message',$("#text-field").val());
             $("#text-field").val("");
+        })
+        
+        $("#money_form").on('submit',function(e){
+            e.preventDefault();
+            if (parseInt($("#money").val())<0){
+                
+                return
+            }
+            if((parseInt($("#mymoney").text())-parseInt($("#money").val())<0)){
+                if(confirm("크레딧이 부족합니다 정말 쏘시겠습니까?")){
+                    socket.emit('credit',$("#money").val());
+                    $("#money").val("");
+                    $("#chat_tab").trigger('click');
+                }
+                else{
+                    return
+                }
+            }
+            else{
+                socket.emit('credit',$("#money").val());
+                $("#money").val("");
+                $("#chat_tab").trigger('click');
+            }
         })
         
         {% endif %}
@@ -316,39 +344,36 @@
             socket.emit('clear');
         })
         
+        $("#give").click(function(){
+            $.ajax({
+              method: "POST",
+              url: "/addict/ajax/",
+              data: { key: "give" }
+            })
+        })
+        
+        $("#reset").click(function(){
+            $.ajax({
+              method: "POST",
+              url: "/addict/ajax/",
+              data: { key: "reset" }
+            })
+        })
+        
         $('#next').click(function(){
             if(confirm("다음 팀으로 넘어가시겠습니까?")==true){
-                $.ajax({
-                  method: "POST",
-                  url: "/addict/ajax/",
-                  data: { key: "next" }
-                })
-                  .done(function( data ) {
-                    socket.emit('next', data.name);
-                    location.reload(); 
-                  });
+                socket.emit('next');
+                location.reload(); 
                 
             }
             
         })
         
-        $('#refresh').click(function(){
-            $.ajax({
-              method: "POST",
-              url: "/addict/ajax/",
-              data: { key: "refresh" }
-            })
-              .done(function( data ) {
-                $("#credit").html("총 "+data.credit+"크레딧 받음");
-              });
+        
+        socket.on("admin_credit",function(total){
+            $("#credit").html("총 "+total+"크레딧 받음");
         })
-        
         {% endif %}
-        
-        // $("#chat").on('click',function(e){
-        //     socket.emit('message',$("#text-field").val());
-        //     $("#text-field").val("");
-        // })
 
     </script>
 </html>

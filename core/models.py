@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 class addict_user(models.Model):  
     user = models.OneToOneField(User)
     nickname = models.CharField(max_length=100,default="")
-    credit=models.IntegerField(default=200)
+    credit=models.IntegerField(default=400)
     past_nickname=models.CharField(max_length=1000,default="")
     
     
