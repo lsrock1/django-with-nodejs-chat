@@ -259,8 +259,15 @@
         }
         
         function credit_string(credit){
-            return '<div class="alert alert-info"><img src="/static/image/balloon.png" class="img-thumbnail" style="height:130px; width: 130px;"><br>'+
-            '<strong>'+credit.name+ '님이 '+credit.credit +'개를 선물하셨습니다</strong></div>'
+            if (parseInt(credit.credit)==0){
+                return '<div class="alert alert-info"><img src="/static/image/balloon_0.jpg" class="img-thumbnail" style="height:130px; width: 130px;"><br>'+
+                '<strong>'+credit.name+ '님이 마음만 선물하셨습니다</strong></div>'
+            }
+            else{
+                
+                return '<div class="alert alert-info"><img src="/static/image/balloon_'+credit.credit+'.jpg" onerror=\"this.src=\'/static/image/balloon.jpg\'\" class="img-thumbnail" style="height:130px; width: 130px;"><br>'+
+                '<strong>'+credit.name+ '님이 '+credit.credit +'개를 선물하셨습니다</strong></div>'
+            }
         }
         
         $("#stop").on("click",function(e){
@@ -301,10 +308,25 @@
         
         socket.on('credit',function(credit){
             $room.append(credit_string(credit));
+            if (on_off==1){
+                $("#top").scrollTop($("#top").prop("scrollHeight"));
+              }
         })
         
         socket.on('poor',function(data){
             $room.append(data.state);
+            if (on_off==1){
+                $("#top").scrollTop($("#top").prop("scrollHeight"));
+              }
+        })
+        
+        socket.on('reset',function(){
+            $("#mymoney").text('400');
+        })
+        
+        socket.on('give',function(){
+            $("#mymoney").text(parseInt($("#mymoney").text())+100));
+            
         })
         
         $("#chat_form").on('submit', function(e){
@@ -331,6 +353,9 @@
             }
             else{
                 socket.emit('credit',$("#money").val());
+                
+                var text=parseInt($("#mymoney").text())-parseInt($("#money").val());
+                $("#mymoney").text(text);
                 $("#money").val("");
                 $("#chat_tab").trigger('click');
             }
@@ -345,19 +370,16 @@
         })
         
         $("#give").click(function(){
-            $.ajax({
-              method: "POST",
-              url: "/addict/ajax/",
-              data: { key: "give" }
-            })
+            socket.emit('give');
         })
         
         $("#reset").click(function(){
-            $.ajax({
-              method: "POST",
-              url: "/addict/ajax/",
-              data: { key: "reset" }
-            })
+            socket.emit('reset');
+            // $.ajax({
+            //   method: "POST",
+            //   url: "/addict/ajax/",
+            //   data: { key: "reset" }
+            // })
         })
         
         $('#next').click(function(){

@@ -100,6 +100,21 @@ def node_api(request):
             'key' : key_value,
             'value' : value,
         }
+    elif key_value=='reset':
+        if user.is_superuser:
+            addict_user.objects.update(credit=400)
+            response_json={
+                'key' : key_value,
+            }
+    elif key_value=='give':
+        if user.is_superuser:
+            all=addict_user.objects.all()
+            for user in all:
+                user.credit=user.credit+100
+                user.save()
+            response_json={
+                'key' : key_value,
+            }
     else:
         if user.is_superuser:
             now=team.objects.get(is_now=1)

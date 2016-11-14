@@ -84,6 +84,12 @@ sub.on('message', function(channel, message){
       messages.push(info);
       broadcast('message',info);
   }
+  else if(data.key=='give'){
+    broadcast('give');
+  }
+  else if(data.key=='reset'){
+    broadcast('reset');
+  }
 });
 
 
@@ -142,6 +148,9 @@ io.on('connection', function (socket) {
     
     django(socket,'next');
     
+    django(socket,'reset');
+    
+    django(socket,'give');
 });
 
 function updateRoster() {
@@ -158,15 +167,16 @@ function updateRoster() {
 }
 
 function broadcast(event, data) {
-  sockets.forEach(function (socket) {
-    socket.emit(event, data);
-  });
+  // sockets.forEach(function (socket) {
+  //   socket.emit(event, data);
+  // });
+  io.emit(event,data);
 }
 
 function django(socket,event){
   socket.on(event,function(data){
     console.log(event);
-    values = querystring.stringify({
+    var values = querystring.stringify({
             key: event,
             content: data,
             sessionid: socket.request.headers.cookie.sessionid,
